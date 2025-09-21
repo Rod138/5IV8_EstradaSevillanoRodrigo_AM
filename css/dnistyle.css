@@ -1,16 +1,60 @@
 body{
-    background-color: #292e39;
+    background-color: #031424;
+    color: #ffffff;
     font-size: 1.1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
 h1{
     color: #ffffff;
     text-align: center;
 }
-
 header{
-    background-color: #434c5e;
+    background-color: #073763;
     margin: 1rem;
     border-radius: 1rem;
+}
+div{
+    background-color: #073763;
+    border-radius: 1rem;
+    padding: 1rem;
+    margin: 1rem;
+    text-align: center;
+}
+.numberField, .letterField {
+    text-align: center;
+    color: #ffffff;
+    background-color: #3b5998;
+    border: none;
+    border-radius: 1.5rem;
+    padding: 0.6rem 1rem;
+    margin: 0.5rem;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+.numberField:focus, .letterField:focus {
+    background-color: #2d4373;
+    box-shadow: 0 0 8px #a9cdeb;
+}
+.letterField {
+    width: 40px;
+}
+input::placeholder{
+    color: #EEE;
+}
+button {
+    background-color: #a9cdeb;
+    color: #ffffff;
+    border: none;
+    border-radius: 1.5rem;
+    padding: 0.7rem 2rem;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+button:hover {
+    background-color: #88b8d8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }

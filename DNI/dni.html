@@ -10,5 +10,28 @@
     <header>
         <h1>Validar DNI</h1>
     </header>
+    <div>
+        <input 
+            type="number" 
+            id="dni-number" 
+            class="numberField" 
+            name="numbers" 
+            placeholder="Número de DNI" 
+            required
+        >
+
+        <input 
+            type="text" 
+            id="dni-letter" 
+            class="letterField" 
+            name="un_caracter" 
+            maxlength="1" 
+            placeholder="Letra" 
+            required
+        >
+
+        <br>
+        <button id="validate-btn">Validar</button>
+    </div>
 </body>
 </html>
