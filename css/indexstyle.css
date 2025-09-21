@@ -1,0 +1,16 @@
+*{
+    background-color: #accebd;
+    font-size: 1.1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body h1{
+    text-align: center;
+    font-size: 2.25rem;
+}
+a{
+    color: rgb(96, 96, 96);
+}
+a:hover{
+    color: rgb(48, 48, 48);
+    font-weight: bold;
+}
