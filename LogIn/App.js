@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Alert,
+  Share,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Sharing from 'expo-sharing';
 
 export default function App() {
   const [user, setUser] = useState('');
@@ -35,6 +46,35 @@ export default function App() {
     }
   };
 
+  const compartir = async () => {
+    try {
+      if (imageUri) {
+        const available = await Sharing.isAvailableAsync();
+        if (available) {
+          await Sharing.shareAsync(imageUri);
+        } else {
+          await Share.share({
+            message: `Mira mi foto de perfil (${user})`,
+            url: imageUri,
+          });
+        }
+      } else {
+        await Share.share({
+          message: `Hola, soy ${user}. ¡He iniciado sesión en la app!`,
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error al compartir', error.message || String(error));
+    }
+  };
+
+  const cerrarSesion = () => {
+    setUser('');
+    setPass('');
+    setImageUri(null);
+    setLoggedIn(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {!loggedIn ? (
@@ -45,6 +85,7 @@ export default function App() {
             style={styles.input}
             value={user}
             onChangeText={setUser}
+            autoCapitalize="none"
           />
           <TextInput
             placeholder="Contraseña"
@@ -60,12 +101,31 @@ export default function App() {
       ) : (
         <View style={styles.box}>
           <Text style={styles.title}>Bienvenido {user}</Text>
-          <TouchableOpacity onPress={cambiarImagen}>
-            <Image
-              source={{ uri: imageUri || 'https://static.vecteezy.com/system/resources/previews/005/005/840/non_2x/user-icon-in-trendy-flat-style-isolated-on-grey-background-user-symbol-for-your-web-site-design-logo-app-ui-illustration-eps10-free-vector.jpg' }}
-              style={styles.image}
-            />
+          <TouchableOpacity onPress={cambiarImagen} activeOpacity={0.8}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.image} />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Image
+                  source={{
+                    uri: 'https://static.vecteezy.com/system/resources/previews/005/005/840/non_2x/user-icon-in-trendy-flat-style-isolated-on-grey-background-user-symbol-for-your-web-site-design-logo-app-ui-illustration-eps10-free-vector.jpg',
+                  }}
+                  style={styles.defaultImage}
+                />
+              </View>
+            )}
           </TouchableOpacity>
+          <View style={styles.row}>
+            <TouchableOpacity style={[styles.button, styles.smallButton]} onPress={compartir}>
+              <Text style={styles.btnText}>Compartir</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.smallButton, styles.logoutButton]}
+              onPress={cerrarSesion}
+            >
+              <Text style={styles.btnText}>Cerrar sesión</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -80,7 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   box: {
-    width: '80%',
+    width: '85%',
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
@@ -105,23 +165,42 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: '100%',
     alignItems: 'center',
+    marginTop: 8,
+  },
+  smallButton: {
+    width: '48%',
+    paddingVertical: 8,
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
   },
   btnText: {
     color: '#fff',
   },
   image: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     marginTop: 10,
   },
-  imagePlaceholder: {
+  defaultImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
+  },
+  imagePlaceholder: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: '#e0e0e0',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 14,
   },
 });
