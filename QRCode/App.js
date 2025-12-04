@@ -7,27 +7,53 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
+  TextInput,
 } from 'react-native';
+import { auth } from './firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+} from 'firebase/auth';
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
-  const [QRCOnTarget, setQRCOnTarget] = useState(false);
   const [scannedData, setScannedData] = useState(null);
-
-  if (!permission) return <View />;
-  if (!permission.granted) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.infoText}>Necesitas permitir acceso a la cámara</Text>
-        <TouchableOpacity style={styles.buttonPrimary} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Dar permiso</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [mensaje, setMensaje] = useState('');
+  const [user, setUser] = useState(null);
 
   const handleScan = ({ data }) => {
     setScannedData(data);
+  };
+
+  const registrar = () => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        setMensaje('Usuario creado');
+        setUser(auth.currentUser);
+      })
+      .catch((e) => setMensaje(e.message));
+  };
+
+  const login = () => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        setMensaje('Usuario logueado');
+        setUser(auth.currentUser);
+      })
+      .catch((e) => setMensaje(e.message));
+  };
+
+  const logout = () => {
+    signOut(auth)
+      .then(() => {
+        setUser(null);
+        setScannedData(null);
+        setMensaje('');
+      })
+      .catch((e) => setMensaje(e.message));
   };
 
   const copyToClipboard = () => {
@@ -36,35 +62,80 @@ export default function App() {
     }
   }
 
-  const goToLink = () => {
-    if (scannedData) {
-      Linking.openURL(scannedData);
-    }
-  }
-
   return (
     <View style={styles.container}>
-      {scannedData ? (
+      {!user ? (
+        <>
+          <Text style={styles.title}>Iniciar sesión</Text>
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor="#999"
+            onChangeText={setEmail}
+            value={email}
+            style={styles.TextInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#999"
+            secureTextEntry
+            onChangeText={setPassword}
+            value={password}
+            style={styles.TextInput}
+          />
+
+          <TouchableOpacity onPress={registrar} style={styles.Button}>
+            <Text style={{ color: 'white' }}>Registrar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={login} style={styles.Button}>
+            <Text style={{ color: 'white' }}>Login</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.message}>{mensaje}</Text>
+        </>
+      ) : scannedData ? (
         <>
           <Text style={styles.title}>Resultado del Escaneo</Text>
           <View style={styles.resultBox}>
             <Text style={styles.resultText}>{scannedData}</Text>
           </View>
-          <TouchableOpacity style={styles.buttonPrimary} onPress={goToLink}>
-            <Text style={styles.buttonText}>Ir al enlace</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.buttonPrimary} onPress={copyToClipboard}>
             <Text style={styles.buttonText}>Copiar enlace</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.buttonPrimary} onPress={() => setScannedData(null)}>
             <Text style={styles.buttonText}>Escanear de nuevo</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={[styles.buttonPrimary, {marginTop: 6}]} onPress={logout}>
+            <Text style={styles.buttonText}>Cerrar sesión</Text>
+          </TouchableOpacity>
         </>
       ) : (
         <>
           <Text style={styles.title}>Escanear Código QR</Text>
-          <CameraView style={styles.camera} onBarcodeScanned={handleScan} barcodeScannerSettings={{ barcodeTypes: ["qr"], }} />
-          <Text style={styles.infoText}>Apunta hacia un código QR</Text>
+          {!permission ? (
+            <View />
+          ) : !permission.granted ? (
+            <View style={styles.center}>
+              <Text style={styles.infoText}>Necesitas permitir acceso a la cámara</Text>
+              <TouchableOpacity style={styles.buttonPrimary} onPress={requestPermission}>
+                <Text style={styles.buttonText}>Dar permiso</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.buttonPrimary, {marginTop: 6}]} onPress={logout}>
+                <Text style={styles.buttonText}>Cerrar sesión</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <CameraView style={styles.camera} onBarcodeScanned={handleScan} barcodeScannerSettings={{ barcodeTypes: ["qr"], }} />
+              <Text style={styles.infoText}>Apunta hacia un código QR</Text>
+              <TouchableOpacity style={[styles.buttonPrimary, {marginTop: 6}]} onPress={logout}>
+                <Text style={styles.buttonText}>Cerrar sesión</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </>
       )}
     </View>
@@ -129,5 +200,24 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  TextInput: {
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  Button: {
+    backgroundColor: '#505050',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  message: {
+    color: '#ff6666',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
