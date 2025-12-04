@@ -19,6 +19,7 @@ import {
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scannedData, setScannedData] = useState(null);
+  const [scanning, setScanning] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
@@ -26,6 +27,7 @@ export default function App() {
 
   const handleScan = ({ data }) => {
     setScannedData(data);
+    setScanning(false);
   };
 
   const registrar = () => {
@@ -52,6 +54,9 @@ export default function App() {
         setUser(null);
         setScannedData(null);
         setMensaje('');
+        setEmail('');
+        setPassword('');
+        setScanning(false);
       })
       .catch((e) => setMensaje(e.message));
   };
@@ -61,6 +66,21 @@ export default function App() {
       Clipboard.setString(scannedData);
     }
   }
+
+  const goToLink = async () => {
+    if (!scannedData) return;
+    try {
+      const url = scannedData;
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        alert('No se puede abrir este enlace');
+      }
+    } catch (e) {
+      alert('Error al abrir el enlace');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -102,13 +122,16 @@ export default function App() {
           <View style={styles.resultBox}>
             <Text style={styles.resultText}>{scannedData}</Text>
           </View>
+          <TouchableOpacity style={styles.buttonPrimary} onPress={goToLink}>
+            <Text style={styles.buttonText}>Abrir enlace</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.buttonPrimary} onPress={copyToClipboard}>
             <Text style={styles.buttonText}>Copiar enlace</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonPrimary} onPress={() => setScannedData(null)}>
+          <TouchableOpacity style={styles.buttonPrimary} onPress={() => { setScannedData(null); setScanning(true); }}>
             <Text style={styles.buttonText}>Escanear de nuevo</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.buttonPrimary, {marginTop: 6}]} onPress={logout}>
+          <TouchableOpacity style={[styles.buttonPrimary, { marginTop: 6 }]} onPress={logout}>
             <Text style={styles.buttonText}>Cerrar sesión</Text>
           </TouchableOpacity>
         </>
@@ -123,15 +146,35 @@ export default function App() {
               <TouchableOpacity style={styles.buttonPrimary} onPress={requestPermission}>
                 <Text style={styles.buttonText}>Dar permiso</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.buttonPrimary, {marginTop: 6}]} onPress={logout}>
+              <TouchableOpacity style={[styles.buttonPrimary, { marginTop: 6 }]} onPress={logout}>
                 <Text style={styles.buttonText}>Cerrar sesión</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <>
-              <CameraView style={styles.camera} onBarcodeScanned={handleScan} barcodeScannerSettings={{ barcodeTypes: ["qr"], }} />
+              <CameraView
+                style={styles.camera}
+                onBarcodeScanned={scanning ? handleScan : undefined}
+                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              />
               <Text style={styles.infoText}>Apunta hacia un código QR</Text>
-              <TouchableOpacity style={[styles.buttonPrimary, {marginTop: 6}]} onPress={logout}>
+
+              {!scanning && (
+                <TouchableOpacity
+                  style={[styles.Button, { alignSelf: 'center', marginTop: 12 }]}
+                  onPress={() => { setScannedData(null); setScanning(true); }}
+                >
+                  <Text style={{ color: 'white' }}>Escanear</Text>
+                </TouchableOpacity>
+              )}
+
+              {scanning && (
+                <TouchableOpacity style={[styles.buttonPrimary, { marginTop: 6 }]} onPress={() => setScanning(false)}>
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity style={[styles.buttonPrimary, { marginTop: 6 }]} onPress={logout}>
                 <Text style={styles.buttonText}>Cerrar sesión</Text>
               </TouchableOpacity>
             </>
